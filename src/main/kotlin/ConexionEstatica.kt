@@ -368,6 +368,31 @@ object ConexionEstatica {
         }
         return lu
     }
+    fun obtenerDios(email: String?): Usuario? {
+        val god: Usuario? = null
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM usuario where rol = 0 AND email = $email"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            if(ConexionEstatica.registro!!.next()){
+                    Usuario(
+                        registro!!.getString("nombre"),
+                        registro!!.getString("email"),
+                        registro!!.getString("password"),
+                        registro!!.getInt("sabiduria"),
+                        registro!!.getInt("nobleza"),
+                        registro!!.getInt("virtud"),
+                        registro!!.getInt("maldad"),
+                        registro!!.getInt("audacia"),
+                        registro!!.getInt("rol")
+                    )
+            }
+        }catch (e:SQLException){
+        }finally {
+            cerrarConexion()
+        }
+        return god
+    }
 
     //Obtencion por afinidad
     fun obtenerAfines(nombre: String): ArrayList<Humano>{
@@ -445,5 +470,29 @@ object ConexionEstatica {
         }
         return lp
     }
+    fun obtenerPrueba(id: Int): Pruebas? {
+        var p :Pruebas? = null
+        abrirConexion()
+        val sentencia = "select * from pruebas where id = ?"
+        val preparado = conexion!!.prepareStatement(sentencia)
+        preparado.setInt(1, id)
+        registro = preparado.executeQuery()
 
+        if(registro!!.next()){
+            p = Pruebas(
+                registro!!.getInt("id"),
+                registro!!.getString("tipo"),
+                registro!!.getString("pregunta"),
+                registro!!.getString("atributo"),
+                registro!!.getInt("destino"),
+                registro!!.getString("respCorrecta"),
+            )
+        }
+        return p
+    }
+
+    //registros
+//    fun obtenerRegistros(): ArrayList<Registros> {
+//
+//    }
 }

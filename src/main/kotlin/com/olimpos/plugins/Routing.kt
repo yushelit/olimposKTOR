@@ -1,6 +1,8 @@
 package com.olimpos.plugins
 
+import com.olimpos.rutas.godRouting
 import com.olimpos.rutas.humanRouting
+import com.olimpos.rutas.userRouting
 import io.ktor.server.routing.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -14,5 +16,7 @@ fun Application.configureRouting() {
             call.respond(mapOf("hello" to "world"))
         }
         humanRouting()
+        userRouting()
+        godRouting()
     }
 }
