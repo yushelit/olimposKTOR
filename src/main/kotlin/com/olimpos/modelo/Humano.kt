@@ -10,5 +10,7 @@ data class Humano (
     val destino:Int,
     val dios:String,
     val alive:Boolean,
-    //val fecha: Date
+    val dia:Int,
+    val mes:Int,
+    val year:Int
 )
