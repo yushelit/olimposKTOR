@@ -180,8 +180,8 @@ object ConexionEstatica {
             if(registro!!.next()){
                 val up = "UPDATE usuario SET nombre = ?, password = ? WHERE email = $email"
                 val reg = conexion!!.prepareStatement(up)
-                reg!!.setString(1,user.nombre)
-                reg.setString(2,user.password)
+                reg!!.setString(0,user.nombre)
+                reg.setString(1,user.password)
                 reg.execute()
             }else{
                 cod = -1
@@ -316,5 +316,57 @@ object ConexionEstatica {
     }
 
     //Dioses
+    fun modificarDios(email: String?,user:Usuario): Int {
+        var cod = 0
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM usuario where email = $email"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            if(registro!!.next()){
+                val up =
+                    "UPDATE usuario SET password = ?, sabiduria = ?, nobleza = ?, virtud = ?, maldad = ?, audacia = ? WHERE email = $email"
+                val reg = conexion!!.prepareStatement(up)
+                reg!!.setString(0,user.password)
+                reg.setInt(1,user.sabiduria)
+                reg.setInt(2,user.nobleza)
+                reg.setInt(3,user.virtud)
+                reg.setInt(4,user.maldad)
+                reg.setInt(5,user.audacia)
+                reg.execute()
+            }else{
+                cod = -1
+            }
+        }catch (ex: SQLException){
+        }finally {
+            cerrarConexion()
+        }
+        return cod
+    }
+    fun obtenerDioses(): ArrayList<Usuario> {
+        val lu :ArrayList<Usuario> = ArrayList(1)
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM usuario where rol = 0"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            while(ConexionEstatica.registro!!.next()){
+                lu.add(
+                    Usuario(
+                        registro!!.getString("nombre"),
+                        registro!!.getString("email"),
+                        registro!!.getString("password"),
+                        registro!!.getInt("sabiduria"),
+                        registro!!.getInt("nobleza"),
+                        registro!!.getInt("virtud"),
+                        registro!!.getInt("maldad"),
+                        registro!!.getInt("audacia"),
+                        registro!!.getInt("rol")
+                    ))
+            }
+        }catch (e:SQLException){
+        }finally {
+            cerrarConexion()
+        }
+        return lu
+    }
 
 }
