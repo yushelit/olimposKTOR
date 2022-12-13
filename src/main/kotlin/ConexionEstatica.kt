@@ -397,6 +397,53 @@ object ConexionEstatica {
     }
 
     //pruebas
-    fun obtenerPruebas()
+    fun obtenerPruebas(): ArrayList<Pruebas> {
+        val lp :ArrayList<Pruebas> = ArrayList(1)
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM pruebas"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            while(registro!!.next()) {
+                lp.add(
+                    Pruebas(
+                        registro!!.getInt("id"),
+                        registro!!.getString("tipo"),
+                        registro!!.getString("pregunta"),
+                        registro!!.getString("atributo"),
+                        registro!!.getInt("destino"),
+                        registro!!.getString("respCorrecta"),
+                    )
+                )
+            }
+        }catch (ex :SQLException){
+        }finally {
+            cerrarConexion()
+        }
+        return lp
+    }
+    fun obtenerPruebasPorTipo(tipo: String): ArrayList<Pruebas> {
+        val lp :ArrayList<Pruebas> = ArrayList(1)
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM pruebas WHERE tipo = $tipo"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            while(registro!!.next()) {
+                lp.add(
+                    Pruebas(
+                        registro!!.getInt("id"),
+                        registro!!.getString("tipo"),
+                        registro!!.getString("pregunta"),
+                        registro!!.getString("atributo"),
+                        registro!!.getInt("destino"),
+                        registro!!.getString("respCorrecta"),
+                    )
+                )
+            }
+        }catch (ex :SQLException){
+        }finally {
+            cerrarConexion()
+        }
+        return lp
+    }
 
 }
