@@ -369,4 +369,34 @@ object ConexionEstatica {
         return lu
     }
 
+    //Obtencion por afinidad
+    fun obtenerAfines(nombre: String): ArrayList<Humano>{
+        val lh :ArrayList<Humano> = ArrayList(1)
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM humanos where alive = true AND dios = $nombre"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            while(ConexionEstatica.registro!!.next()){
+                val fecha = registro!!.getDate("fechaMuerte")
+                val dia = fecha.day
+                val mes = fecha.month
+                val anio = fecha.year
+                lh.add(
+                    Humano(
+                        registro!!.getString("email"),
+                        registro!!.getInt("destino"),
+                        registro!!.getString("dios"),
+                        registro!!.getBoolean("alive"),
+                        dia, mes, anio))
+            }
+        }catch (e:SQLException){
+        }finally {
+            cerrarConexion()
+        }
+        return lh
+    }
+
+    //pruebas
+    fun obtenerPruebas()
+
 }
