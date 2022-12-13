@@ -1,7 +1,10 @@
 import com.olimpos.modelo.*
 import java.sql.*
+import java.time.LocalDate
 import java.util.*
+import java.util.Date
 import kotlin.collections.ArrayList
+
 
 object ConexionEstatica {
     var conexion: Connection? = null
@@ -123,38 +126,40 @@ object ConexionEstatica {
         }
         return u
     }
-    fun agregarUsuario(usuario: Usuario) :String {
+    fun agregarUsuario(usuario: Usuario) :Int {
+        var cod = 0
         try {
             abrirConexion()
             val sentencia = "insert into usuario values(?,?,?,?,?,?,?,?,?)"
             val insert = conexion!!.prepareStatement(sentencia)
 
-            insert!!.setString(1,usuario.nombre)
-            insert.setString(2,usuario.email)
-            insert.setString(3,usuario.password)
-            insert.setInt(4,usuario.sabiduria)
-            insert.setInt(5,usuario.nobleza)
-            insert.setInt(6,usuario.virtud)
-            insert.setInt(7,usuario.maldad)
-            insert.setInt(8,usuario.audacia)
-            insert.setInt(9,usuario.rol)
+            insert!!.setString(0,usuario.nombre)
+            insert.setString(1,usuario.email)
+            insert.setString(2,usuario.password)
+            insert.setInt(3,usuario.sabiduria)
+            insert.setInt(4,usuario.nobleza)
+            insert.setInt(5,usuario.virtud)
+            insert.setInt(6,usuario.maldad)
+            insert.setInt(7,usuario.audacia)
+            insert.setInt(8,usuario.rol)
 
             insert!!.execute()
 
         }catch (ex : SQLException){
+            cod = -1
         }finally {
             cerrarConexion()
         }
-        return "Usuario agregado"
+        return cod
     }
     fun borrarUsuario(email: String?):Int {
         var cod = 0
         try{
             abrirConexion()
-            val sentencia = "SELECT * FROM humanos where email = $email"
+            val sentencia = "SELECT * FROM usuario where email = $email"
             registro = sentenciaSQL!!.executeQuery(sentencia)
             if(registro!!.next()){
-                val del = "DELETE FROM humanos where email = $email"
+                val del = "DELETE FROM usuario where email = $email"
                 val reg = conexion!!.prepareStatement(del)
                 reg.execute()
             }else{
@@ -170,10 +175,10 @@ object ConexionEstatica {
         var cod = 0
         try{
             abrirConexion()
-            val sentencia = "SELECT * FROM humanos where email = $email"
+            val sentencia = "SELECT * FROM usuario where email = $email"
             registro = sentenciaSQL!!.executeQuery(sentencia)
             if(registro!!.next()){
-                val up = "UPDATE usuario SET nombre = ?, password = ?"
+                val up = "UPDATE usuario SET nombre = ?, password = ? WHERE email = $email"
                 val reg = conexion!!.prepareStatement(up)
                 reg!!.setString(1,user.nombre)
                 reg.setString(2,user.password)
@@ -196,16 +201,17 @@ object ConexionEstatica {
             val sentencia = "SELECT * FROM humanos where alive = true"
             registro = sentenciaSQL!!.executeQuery(sentencia)
             while(ConexionEstatica.registro!!.next()){
+                val fecha = registro!!.getDate("fechaMuerte")
+                val dia = fecha.day
+                val mes = fecha.month
+                val anio = fecha.year
                 lh.add(
                     Humano(
                         registro!!.getString("email"),
                         registro!!.getInt("destino"),
                         registro!!.getString("dios"),
                         registro!!.getBoolean("alive"),
-                        registro!!.getInt("dia"),
-                        registro!!.getInt("mes"),
-                        registro!!.getInt("year")
-                    ))
+                        dia, mes, anio))
             }
         }catch (e:SQLException){
         }finally {
@@ -215,29 +221,100 @@ object ConexionEstatica {
     }
     fun obtenerHumano(email:String?): Humano? {
         var h: Humano? = null
-        try{
+        try {
             abrirConexion()
             val sentencia = "select * from usuario where email = ?"
             val preparado = conexion!!.prepareStatement(sentencia)
             preparado.setString(1, email)
             registro = preparado.executeQuery()
 
-            if (registro!!.next()){
-                u = Usuario(
-                    registro!!.getString("nombre"),
+            if (registro!!.next()) {
+                val fecha = registro!!.getDate("fechaMuerte")
+                val dia = fecha.day
+                val mes = fecha.month
+                val anio = fecha.year
+                h = Humano(
                     registro!!.getString("email"),
-                    registro!!.getString("password"),
-                    registro!!.getInt("sabiduria"),
-                    registro!!.getInt("nobleza"),
-                    registro!!.getInt("virtud"),
-                    registro!!.getInt("maldad"),
-                    registro!!.getInt("audacia"),
-                    registro!!.getInt("rol")
-                )
+                    registro!!.getInt("destino"),
+                    registro!!.getString("dios"),
+                    registro!!.getBoolean("alive"),
+                    dia, mes, anio)
+            }
+        } catch (ex: SQLException) {
+        } finally {
+            cerrarConexion()
+        }
+        return h
+    }
+    fun agregarHumano(human:Humano):Int {
+        var cod = 0
+        try{
+            abrirConexion()
+            val sentencia = "insert into humano values(?,?,?,?,?)"
+            val insert = conexion!!.prepareStatement(sentencia)
+
+            val fecha: java.sql.Date = java.sql.Date(human.year, human.mes,human.dia)
+
+            insert.setString(0,human.email)
+            insert.setInt(1,human.destino)
+            insert.setString(2,human.dios)
+            insert.setBoolean(3,human.alive)
+            insert.setDate(4, fecha)
+
+        }catch (ex: SQLException){
+            cod = -1
+        }finally {
+            cerrarConexion()
+        }
+        return cod;
+    }
+    fun borrarHumano(email: String?) : Int {
+        var cod = 0
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM humanos where email = $email"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            if(registro!!.next()){
+                val del = "DELETE FROM humanos where email = $email"
+                val reg = conexion!!.prepareStatement(del)
+                reg.execute()
+            }else{
+                cod = -1
             }
         }catch (ex: SQLException){
         }finally {
             cerrarConexion()
         }
-        return u
+        return cod
+    }
+    fun modificarHumano(email: String?, human: Humano): Int {
+        var cod = 0
+        try{
+            abrirConexion()
+            val sentencia = "SELECT * FROM humanos where email = $email"
+            registro = sentenciaSQL!!.executeQuery(sentencia)
+            if(registro!!.next()){
+                val up = "UPDATE humanos SET destino = destino+?, estaVivo = ?, fechaMuerte = ? WHERE email = $email"
+                val reg = conexion!!.prepareStatement(up)
+
+                val fecha: java.sql.Date = java.sql.Date(human.year, human.mes,human.dia)
+
+                reg!!.setInt(0,human.destino)
+                reg.setBoolean(1,human.alive)
+                reg.setDate(2, fecha)
+                reg.execute()
+
+            }else{
+                cod = -1
+            }
+        }catch (ex: SQLException){
+            cod = -1
+        }finally {
+            cerrarConexion()
+        }
+        return cod
+    }
+
+    //Dioses
+
 }
