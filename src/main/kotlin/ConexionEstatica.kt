@@ -190,9 +190,9 @@ object ConexionEstatica {
         val lh :ArrayList<Humano> = ArrayList(1)
         try{
             abrirConexion()
-            val sentencia = "SELECT * FROM humanos where alive = true"
+            val sentencia = "SELECT * FROM humanos"
             registro = sentenciaSQL!!.executeQuery(sentencia)
-            while(ConexionEstatica.registro!!.next()){
+            while(registro!!.next()){
                 val fecha = registro!!.getDate("fechaMuerte")
                 val dia = fecha.day
                 val mes = fecha.month
@@ -252,6 +252,7 @@ object ConexionEstatica {
             insert.setString(2,human.dios)
             insert.setBoolean(3,human.alive)
             insert.setDate(4, fecha)
+            insert!!.execute()
 
         }catch (ex: SQLException){
             cod = -1
@@ -414,29 +415,20 @@ object ConexionEstatica {
     }
 
     //pruebas
-    fun obtenerPruebas(): ArrayList<Pruebas> {
-        val lp :ArrayList<Pruebas> = ArrayList(1)
+    fun obtenerTipos(): ArrayList<String> {
+        val lt :ArrayList<String> = ArrayList(1)
         try{
             abrirConexion()
-            val sentencia = "SELECT * FROM pruebas"
+            val sentencia = "SELECT tipo FROM pruebas"
             registro = sentenciaSQL!!.executeQuery(sentencia)
             while(registro!!.next()) {
-                lp.add(
-                    Pruebas(
-                        registro!!.getInt("id"),
-                        registro!!.getString("tipo"),
-                        registro!!.getString("pregunta"),
-                        registro!!.getString("atributo"),
-                        registro!!.getInt("destino"),
-                        registro!!.getString("respCorrecta"),
-                    )
-                )
+                lt.add(registro!!.getString("tipo"))
             }
         }catch (ex :SQLException){
         }finally {
             cerrarConexion()
         }
-        return lp
+        return lt
     }
     fun obtenerPruebasPorTipo(tipo: String): ArrayList<Pruebas> {
         val lp :ArrayList<Pruebas> = ArrayList(1)
@@ -484,7 +476,80 @@ object ConexionEstatica {
     }
 
     //registros
-//    fun obtenerRegistros(): ArrayList<Registros> {
-//
-//    }
+    fun obtenerRegistros(mail: String?): ArrayList<DetalleRegistro> {
+        val dp: ArrayList<DetalleRegistro> = ArrayList(1)
+        abrirConexion()
+        val sentencia = "select pruebas.tipo, pruebas.pregunta, pruebas.id, registro.idHumano, registro.respuesta " +
+                "from pruebas join registro on pruebas.id=registro.idP where idHumano = ?"
+        val preparado = conexion!!.prepareStatement(sentencia)
+        preparado.setString(1, mail)
+        registro = preparado.executeQuery()
+        while(registro!!.next()){
+            dp.add(DetalleRegistro(
+                registro!!.getInt("id"),
+                registro!!.getString("tipo"),
+                registro!!.getString("pregunta"),
+                registro!!.getString("idHumano"),
+                registro!!.getString("respuesta"),
+            ))
+        }
+        return dp
+    }
+    fun obtenerRegistro(mail:String?, id: Int): DetalleRegistro? {
+        var detalle: DetalleRegistro? = null
+        abrirConexion()
+        val sentencia = "select pruebas.tipo, pruebas.pregunta, pruebas.id, registro.idHumano, registro.respuesta " +
+                "from pruebas join registro on pruebas.id=registro.idP where idHumano = ? AND id = ?"
+        val preparado = conexion!!.prepareStatement(sentencia)
+        preparado.setString(1, mail)
+        preparado.setInt(2, id)
+        registro = preparado.executeQuery()
+
+        if(registro!!.next()){
+            detalle = DetalleRegistro(
+                registro!!.getInt("id"),
+                registro!!.getString("tipo"),
+                registro!!.getString("pregunta"),
+                registro!!.getString("idHumano"),
+                registro!!.getString("respuesta"),
+            )
+        }
+        return detalle
+    }
+    fun insertarRegistro(detalle:Registros): Int {
+        var cod = 0
+        try{
+            abrirConexion()
+            val sentencia = "insert into registro values(?,?,?)"
+            val insert = conexion!!.prepareStatement(sentencia)
+            insert.setInt(0,detalle.idP)
+            insert.setString(1,detalle.idHumano)
+            insert.setString(2,detalle.respuesta)
+            insert!!.execute()
+        }catch (ex :SQLException){
+            cod = -1
+        }
+        finally {
+            cerrarConexion()
+        }
+        return cod
+    }
+    fun modificarRegistro(mail:String?, id: Int, detalle:Registros): Int {
+        var cod = 0
+        try{
+
+            abrirConexion()
+            val up = "UPDATE registro SET respuesta = ? WHERE idHumano = $mail AND id = $id"
+            val reg = conexion!!.prepareStatement(up)
+            reg!!.setString(0,detalle.respuesta)
+            reg.execute()
+
+        }catch (ex :SQLException){
+            cod = -1
+        }
+        finally {
+            cerrarConexion()
+        }
+        return cod
+    }
 }
