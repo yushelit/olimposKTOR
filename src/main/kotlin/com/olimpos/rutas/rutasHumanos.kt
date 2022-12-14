@@ -2,6 +2,7 @@ package com.olimpos.rutas
 
 import ConexionEstatica
 import com.olimpos.modelo.Humano
+import com.olimpos.modelo.Log
 import com.olimpos.modelo.Usuario
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -21,7 +22,7 @@ fun Route.humanRouting(){
                 call.respondText("No hay humanos",status = HttpStatusCode.OK)
             }
         }
-        get("{/email?}"){
+        get("{email?}"){
             val id = call.parameters["email"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
             val humano = ConexionEstatica.obtenerHumano(id)
             if (humano == null) {
@@ -30,7 +31,7 @@ fun Route.humanRouting(){
             }
             call.respond(humano)
         }
-        get("{/afinidad?}"){
+        get("{afinidad?}"){
             val afinidad = call.parameters["afinidad"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
             val humano = ConexionEstatica.obtenerAfines(afinidad)
             if (humano == null) {
@@ -60,6 +61,18 @@ fun Route.humanRouting(){
     }
 }
 fun Route.userRouting(){
+    route("{email?}"){
+        get("{password?}"){
+            val id = call.parameters["email"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
+            val pwd = call.parameters["password"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
+            val log: Log? = ConexionEstatica.login(id, pwd)
+            if (log == null) {
+                call.response.status(HttpStatusCode.NotFound)
+                return@get call.respond(Respuesta("El usuario con el loggin: ${id} no existe", HttpStatusCode.NotFound.value))
+            }
+            call.respond(log)
+        }
+    }
     route("/usuarios"){
         get{
             val usuario = ConexionEstatica.obtenerUsuarios()
@@ -70,25 +83,26 @@ fun Route.userRouting(){
                 call.respondText("No hay usuarios",status = HttpStatusCode.OK)
             }
         }
-        get("{/email?}"){
+        get("{email?}"){
             val id = call.parameters["email"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
-            val usuario = ConexionEstatica.obtenerHumano(id)
+            val usuario = ConexionEstatica.obtenerUsuario(id)
             if (usuario == null) {
                 call.response.status(HttpStatusCode.NotFound)
                 return@get call.respond(Respuesta("El usuario con el loggin: ${id} no existe", HttpStatusCode.NotFound.value))
             }
             call.respond(usuario)
         }
-        get("{/email?/password?}"){
-            val id = call.parameters["email"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
-            val pwd = call.parameters["password"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
-            val usuario = ConexionEstatica.login(id, pwd)
-            if (usuario == null) {
-                call.response.status(HttpStatusCode.NotFound)
-                return@get call.respond(Respuesta("El usuario con el loggin: ${id} no existe", HttpStatusCode.NotFound.value))
-            }
-            call.respond(usuario)
-        }
+//        get("{email?/password?}"){
+//            val id = call.parameters["email"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
+//            val pwd = call.parameters["password"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
+//            val log: Log? = ConexionEstatica.login(id, pwd)
+//            if (log == null) {
+//                call.response.status(HttpStatusCode.NotFound)
+//                return@get call.respond(Respuesta("El usuario con el loggin: ${id} no existe", HttpStatusCode.NotFound.value))
+//            }
+//            call.respond(log)
+//        }
+
         post{
             val us = call.receive<Usuario>()
             ConexionEstatica.agregarUsuario(us)
@@ -120,7 +134,7 @@ fun Route.godRouting(){
                 call.respondText("No hay registros",status = HttpStatusCode.OK)
             }
         }
-        get("{/email?}"){
+        get("{email?}"){
             val id = call.parameters["email"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
             val usuario = ConexionEstatica.obtenerDios(id)
             if (usuario == null) {

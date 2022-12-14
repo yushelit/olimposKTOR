@@ -39,27 +39,21 @@ object ConexionEstatica {
         return cod
     }
 
-    fun login(email:String?, pwd:String?): Usuario? {
-        var u: Usuario? = null
+    fun login(email:String?, pwd:String?): Log? {
+        var u: Log? = null
         try{
             abrirConexion()
-            val sentencia = "select * from usuario where email = ? AND password = ?"
+            val sentencia = "select nombre, email, password from usuario where email = ? AND password = ?"
             val pstmt = conexion!!.prepareStatement(sentencia)
             pstmt.setString(1, email)
             pstmt.setString(2, pwd)
             registro = pstmt.executeQuery()
 
             while (registro!!.next()){
-                u = Usuario(
+                u = Log(
                     registro!!.getString("nombre"),
                     registro!!.getString("email"),
-                    registro!!.getString("password"),
-                    registro!!.getInt("sabiduria"),
-                    registro!!.getInt("nobleza"),
-                    registro!!.getInt("virtud"),
-                    registro!!.getInt("maldad"),
-                    registro!!.getInt("audacia"),
-                    registro!!.getInt("rol")
+                    registro!!.getString("password")
                 )
             }
         }catch (ex: SQLException){
@@ -68,7 +62,6 @@ object ConexionEstatica {
         }
         return u
     }
-
 
 
     //Usuarios
@@ -106,7 +99,6 @@ object ConexionEstatica {
             val preparado = conexion!!.prepareStatement(sentencia)
             preparado.setString(1, email)
             registro = preparado.executeQuery()
-
             if (registro!!.next()){
                 u = Usuario(
                     registro!!.getString("nombre"),
