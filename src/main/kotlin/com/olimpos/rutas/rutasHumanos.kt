@@ -29,11 +29,7 @@ fun Route.humanRouting(){
             }
             call.respond(humano)
         }
-        get("{afinidad?}"){
-            val afinidad = call.parameters["afinidad"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
-            val humano = ConexionEstatica.obtenerAfines(afinidad)
-            call.respond(humano)
-        }
+
         post{
             val us = call.receive<Humano>()
             ConexionEstatica.agregarHumano(us)
@@ -45,6 +41,14 @@ fun Route.humanRouting(){
             ConexionEstatica.modificarHumano(id, us)
         }
     }
+    route("/afinidad"){
+        get("{afinidad?}"){
+            val afinidad = call.parameters["afinidad"] ?: return@get call.respondText("email vacío en la url", status = HttpStatusCode.BadRequest)
+            val humano = ConexionEstatica.obtenerAfines(afinidad)
+            call.respond(humano)
+        }
+    }
+
 }
 fun Route.userRouting(){
     route("/usuarios"){
@@ -89,8 +93,8 @@ fun Route.userRouting(){
         }
         put("{email?}") {
             val id = call.parameters["email"] ?: return@put call.respondText("id vacío en la url", status = HttpStatusCode.BadRequest)
-            val us = call.receive<Humano>()
-            ConexionEstatica.modificarHumano(id, us)
+            val us = call.receive<Usuario>()
+            ConexionEstatica.modificarUsuario(id, us)
         }
     }
 }

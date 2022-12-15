@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class Log(
     val nombre:String,
     val email:String,
-    val password:String
+    val password:String,
+    val rol:Int
 )

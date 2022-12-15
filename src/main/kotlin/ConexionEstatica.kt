@@ -1,8 +1,9 @@
 import com.olimpos.modelo.*
 import java.sql.*
+import java.sql.Date
 import java.time.LocalDate
 import java.util.*
-import java.util.Date
+
 import kotlin.collections.ArrayList
 
 
@@ -43,7 +44,7 @@ object ConexionEstatica {
         var u: Log? = null
         try{
             abrirConexion()
-            val sentencia = "select nombre, email, password from usuario where email = ? AND password = ?"
+            val sentencia = "select nombre, email, password, rol from usuario where email = ? AND password = ?"
             val pstmt = conexion!!.prepareStatement(sentencia)
             pstmt.setString(1, email)
             pstmt.setString(2, pwd)
@@ -53,7 +54,8 @@ object ConexionEstatica {
                 u = Log(
                     registro!!.getString("nombre"),
                     registro!!.getString("email"),
-                    registro!!.getString("password")
+                    registro!!.getString("password"),
+                    registro!!.getInt("rol")
                 )
             }
         }catch (ex: SQLException){
@@ -144,25 +146,6 @@ object ConexionEstatica {
         }
         return cod
     }
-    fun borrarUsuario(email: String?):Int {
-        var cod = 0
-        try{
-            abrirConexion()
-            val sentencia = "SELECT * FROM usuario where email = $email"
-            registro = sentenciaSQL!!.executeQuery(sentencia)
-            if(registro!!.next()){
-                val del = "DELETE FROM usuario where email = $email"
-                val reg = conexion!!.prepareStatement(del)
-                reg.execute()
-            }else{
-                cod = -1
-            }
-        }catch (ex: SQLException){
-        }finally {
-            cerrarConexion()
-        }
-        return cod
-    }
     fun modificarUsuario(email: String?, user:Usuario): Int {
         var cod = 0
         try{
@@ -192,11 +175,17 @@ object ConexionEstatica {
             abrirConexion()
             val sentencia = "SELECT * FROM humanos"
             registro = sentenciaSQL!!.executeQuery(sentencia)
+            var dia:Int? = 0
+            var mes:Int? = 0
+            var anio:Int? = 0
             while(registro!!.next()){
                 val fecha = registro!!.getDate("fechaMuerte")
-                val dia = fecha.day
-                val mes = fecha.month
-                val anio = fecha.year
+                val fecha2: LocalDate? = fecha?.toLocalDate()
+                if(fecha2 != null){
+                        dia = fecha2.dayOfMonth
+                        mes = fecha2.monthValue
+                        anio = fecha2.year
+                    }
                 lh.add(
                     Humano(
                         registro!!.getString("email"),
@@ -221,10 +210,18 @@ object ConexionEstatica {
             registro = preparado.executeQuery()
 
             if (registro!!.next()) {
+                var dia:Int? = 0
+                var mes:Int? = 0
+                var anio:Int? = 0
+
                 val fecha = registro!!.getDate("fechaMuerte")
-                val dia = fecha.day
-                val mes = fecha.month
-                val anio = fecha.year
+                val fecha2: LocalDate? = fecha?.toLocalDate()
+
+                if(fecha2 != null){
+                    dia = fecha2.dayOfMonth
+                    mes = fecha2.monthValue
+                    anio = fecha2.year
+                }
                 h = Humano(
                     registro!!.getString("email"),
                     registro!!.getInt("destino"),
@@ -245,7 +242,10 @@ object ConexionEstatica {
             val sentencia = "insert into humano values(?,?,?,?,?)"
             val insert = conexion!!.prepareStatement(sentencia)
 
-            val fecha: java.sql.Date = java.sql.Date(human.year, human.mes,human.dia)
+            var fecha:Date? = null
+            if(human.year!! > 0 && human.mes!! >0 && human.dia!! > 0){
+                fecha = Date.valueOf(LocalDate.parse(human.year.toString()+"-" +human.mes.toString()+"-"+human.dia.toString()))
+            }
 
             insert.setString(0,human.email)
             insert.setInt(1,human.destino)
@@ -253,7 +253,6 @@ object ConexionEstatica {
             insert.setBoolean(3,human.alive)
             insert.setDate(4, fecha)
             insert!!.execute()
-
         }catch (ex: SQLException){
             cod = -1
         }finally {
@@ -261,25 +260,7 @@ object ConexionEstatica {
         }
         return cod;
     }
-    fun borrarHumano(email: String?) : Int {
-        var cod = 0
-        try{
-            abrirConexion()
-            val sentencia = "SELECT * FROM humanos where email = $email"
-            registro = sentenciaSQL!!.executeQuery(sentencia)
-            if(registro!!.next()){
-                val del = "DELETE FROM humanos where email = $email"
-                val reg = conexion!!.prepareStatement(del)
-                reg.execute()
-            }else{
-                cod = -1
-            }
-        }catch (ex: SQLException){
-        }finally {
-            cerrarConexion()
-        }
-        return cod
-    }
+
     fun modificarHumano(email: String?, human: Humano): Int {
         var cod = 0
         try{
@@ -290,7 +271,10 @@ object ConexionEstatica {
                 val up = "UPDATE humanos SET destino = destino+?, estaVivo = ?, fechaMuerte = ? WHERE email = $email"
                 val reg = conexion!!.prepareStatement(up)
 
-                val fecha: java.sql.Date = java.sql.Date(human.year, human.mes,human.dia)
+                var fecha:Date? = null
+                if(human.year!! > 0 && human.mes!! >0 && human.dia!! > 0){
+                    fecha = Date.valueOf(LocalDate.parse(human.year.toString()+"-" +human.mes.toString()+"-"+human.dia.toString()))
+                }
 
                 reg!!.setInt(0,human.destino)
                 reg.setBoolean(1,human.alive)
