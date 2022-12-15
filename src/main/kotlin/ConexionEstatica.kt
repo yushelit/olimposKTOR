@@ -175,23 +175,26 @@ object ConexionEstatica {
             abrirConexion()
             val sentencia = "SELECT * FROM humanos"
             registro = sentenciaSQL!!.executeQuery(sentencia)
-            var dia:Int? = 0
-            var mes:Int? = 0
-            var anio:Int? = 0
             while(registro!!.next()){
-                val fecha = registro!!.getDate("fechaMuerte")
-                val fecha2: LocalDate? = fecha?.toLocalDate()
+                var dia:Int = 0
+                var mes:Int = 0
+                var anio:Int = 0
+
+                var fecha:Date? =  registro!!.getDate("fechaMuerte")
+                var fecha2:LocalDate? = fecha?.toLocalDate()
+                println(fecha2)
+
                 if(fecha2 != null){
                         dia = fecha2.dayOfMonth
                         mes = fecha2.monthValue
                         anio = fecha2.year
-                    }
+                }
                 lh.add(
                     Humano(
                         registro!!.getString("email"),
                         registro!!.getInt("destino"),
                         registro!!.getString("dios"),
-                        registro!!.getBoolean("alive"),
+                        registro!!.getBoolean("estaVivo"),
                         dia, mes, anio))
             }
         }catch (e:SQLException){
@@ -204,15 +207,15 @@ object ConexionEstatica {
         var h: Humano? = null
         try {
             abrirConexion()
-            val sentencia = "select * from usuario where email = ?"
+            val sentencia = "select * from humanos where email = ?"
             val preparado = conexion!!.prepareStatement(sentencia)
             preparado.setString(1, email)
             registro = preparado.executeQuery()
 
             if (registro!!.next()) {
-                var dia:Int? = 0
-                var mes:Int? = 0
-                var anio:Int? = 0
+                var dia:Int = 0
+                var mes:Int = 0
+                var anio:Int = 0
 
                 val fecha = registro!!.getDate("fechaMuerte")
                 val fecha2: LocalDate? = fecha?.toLocalDate()
@@ -226,7 +229,7 @@ object ConexionEstatica {
                     registro!!.getString("email"),
                     registro!!.getInt("destino"),
                     registro!!.getString("dios"),
-                    registro!!.getBoolean("alive"),
+                    registro!!.getBoolean("estaVivo"),
                     dia, mes, anio)
             }
         } catch (ex: SQLException) {
@@ -243,7 +246,7 @@ object ConexionEstatica {
             val insert = conexion!!.prepareStatement(sentencia)
 
             var fecha:Date? = null
-            if(human.year!! > 0 && human.mes!! >0 && human.dia!! > 0){
+            if(human.year > 0 && human.mes >0 && human.dia > 0){
                 fecha = Date.valueOf(LocalDate.parse(human.year.toString()+"-" +human.mes.toString()+"-"+human.dia.toString()))
             }
 
@@ -379,10 +382,18 @@ object ConexionEstatica {
             val sentencia = "SELECT * FROM humanos where alive = true AND dios = $nombre"
             registro = sentenciaSQL!!.executeQuery(sentencia)
             while(ConexionEstatica.registro!!.next()){
+                var dia:Int = 0
+                var mes:Int = 0
+                var anio:Int = 0
+
                 val fecha = registro!!.getDate("fechaMuerte")
-                val dia = fecha.day
-                val mes = fecha.month
-                val anio = fecha.year
+                val fecha2: LocalDate? = fecha?.toLocalDate()
+
+                if(fecha2 != null){
+                    dia = fecha2.dayOfMonth
+                    mes = fecha2.monthValue
+                    anio = fecha2.year
+                }
                 lh.add(
                     Humano(
                         registro!!.getString("email"),
